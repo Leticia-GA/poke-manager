@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Pokemon;
+use App\Entity\PokemonType;
 use App\PokeApi\PokeApiClient;
 use App\Repository\PokemonRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,6 +38,40 @@ class PokemonController extends AbstractController
             );
 
             $entityManager->persist($pokemon);
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse();
+    }
+
+    #[Route('/load-types', name: 'load_types', methods:['GET'])]
+    public function loadTypes(EntityManagerInterface $entityManager): JsonResponse
+    {
+        $types = $this->client->getPokemonTypes();
+
+        foreach ($types as $type) {
+            $typeData = $this->client->getTypeData($type['url']);
+
+            $pokemonType = new PokemonType(
+                $typeData['id'],
+                $typeData['name']
+            );
+
+            $pokemons = $typeData['pokemon'];
+
+            foreach ($pokemons as $pokemon) {
+                $pokemonName = $pokemon['pokemon']['name'];
+
+                $pokemonRepository = $entityManager->getRepository(Pokemon::class);
+                $pokemon = $pokemonRepository->findOneBy(['name' => $pokemonName]);
+
+                if ($pokemon) {
+                    $pokemonType->addPokemon($pokemon);
+                }
+            }
+
+            $entityManager->persist($pokemonType);
         }
 
         $entityManager->flush();

@@ -2,13 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\PokemonRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: PokemonRepository::class)]
-class Pokemon
+#[ORM\Entity]
+class PokemonType
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -18,14 +17,18 @@ class Pokemon
     #[ORM\Column(length: 100)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $color = null;
+    #[ORM\ManyToMany(targetEntity: Pokemon::class, inversedBy: 'types')]
+    private Collection $pokemons;
 
-    public function __construct(?int $id, ?string $name, ?string $color)
+    public function __construct(?int $id, ?string $name)
     {
         $this->id = $id;
         $this->name = $name;
-        $this->color = $color;
-        $this->types = new ArrayCollection();
+        $this->pokemons = new ArrayCollection();
+    }
+
+    public function addPokemon(Pokemon $pokemon): bool
+    {
+        return $this->pokemons->add($pokemon);
     }
 }
