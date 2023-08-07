@@ -28,7 +28,7 @@ class PokemonController extends AbstractController
         $this->client = $client;
     }
 
-    #[Route('/load-pokemon', name: 'load_all_first_generation', methods:['GET'])]
+    #[Route('/load-pokemons', name: 'load_all_first_generation', methods:['GET'])]
     public function loadAll(EntityManagerInterface $entityManager): JsonResponse
     {
         $this->loadAllFirstGeneration($entityManager);

@@ -12,9 +12,7 @@ security:
       http_basic: ~
 
   access_control:
-  - { path: ^/api/load-all, roles: ROLE_ADMIN }
-  - { path: ^/api/load-types, roles: ROLE_ADMIN }
-  - { path: ^/api/load-evolutions, roles: ROLE_ADMIN }
+  - { path: ^/api/load-pokemons, roles: ROLE_ADMIN }
 
 when@test:
   security:
