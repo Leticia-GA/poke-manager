@@ -71,7 +71,7 @@ class PokemonController extends AbstractController
                 $pokemon = $pokemonRepository->findOneBy(['name' => $pokemonName]);
 
                 if ($pokemon) {
-                    $pokemonType->addPokemon($pokemon);
+                    $pokemon->addType($pokemonType);
                 }
             }
 
@@ -150,7 +150,9 @@ class PokemonController extends AbstractController
             $data[] = [
                 'id' => $pokemon->getId(),
                 'name' => $pokemon->getName(),
-                'color' => $pokemon->getColor()
+                'color' => $pokemon->getColor(),
+                'type' => $pokemon->getSerializedTypes(),
+                'evolves_to' => $pokemon->getEvolvesTo() ? $pokemon->getEvolvesTo()->getName() : '-'
             ];
         }
 

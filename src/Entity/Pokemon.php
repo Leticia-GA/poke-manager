@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PokemonRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PokemonRepository::class)]
@@ -18,6 +20,9 @@ class Pokemon
     #[ORM\Column(length: 50)]
     private ?string $color;
 
+    #[ORM\ManyToMany(targetEntity: PokemonType::class, mappedBy: 'pokemons')]
+    private Collection $types;
+
     #[ORM\ManyToOne(targetEntity: Pokemon::class)]
     private ?Pokemon $evolvesTo = null;
 
@@ -32,6 +37,7 @@ class Pokemon
         $this->id = $id;
         $this->name = $name;
         $this->color = $color;
+        $this->types = new ArrayCollection();
         $this->evolutionChainUrl = $evolutionChainUrl;
     }
 
@@ -48,6 +54,17 @@ class Pokemon
     public function getColor(): ?string
     {
         return $this->color;
+    }
+
+    public function getTypes(): Collection
+    {
+        return $this->types;
+    }
+
+    public function addType(PokemonType $type): void
+    {
+        $this->types->add($type);
+        $type->addPokemon($this);
     }
 
     public function getEvolvesTo(): ?Pokemon
@@ -73,5 +90,23 @@ class Pokemon
     public function getEvolutionChainUrl(): string
     {
         return $this->evolutionChainUrl;
+    }
+
+    public function getSerializedTypes(): string
+    {
+        $serialization = '';
+        $types = $this->getTypes();
+        $firstType = true;
+
+        foreach ($types as $type) {
+            if (!$firstType) {
+                $serialization .= ', ';
+            }
+
+            $serialization .= $type->getName();
+            $firstType = false;
+        }
+
+        return $serialization;
     }
 }
