@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class PokemonController extends AbstractController
 {
     private const NUM_ITEMS_PER_PAGE = 20;
+    private const NUM_MAX_EVOLUTION_POKEMONS = 3;
 
     private PokemonRepository $repository;
     private PokeApiClient $client;
@@ -185,7 +186,7 @@ class PokemonController extends AbstractController
 
         // Se ordena en primer lugar por el número de evoluciones que tiene el
         // pokemon y a continuación por el índice, tal y como pide el enunciado
-        $pokemons = $repository->findBy([], ['numEvolutions' => 'DESC', 'id' => 'ASC'], 3);
+        $pokemons = $repository->findBy([], ['numEvolutions' => 'DESC', 'id' => 'ASC'], self::NUM_MAX_EVOLUTION_POKEMONS);
 
         $evolutions = [];
 
