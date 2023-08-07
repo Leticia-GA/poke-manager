@@ -55,6 +55,7 @@ class PokemonController extends AbstractController
         $types = $this->client->getPokemonTypes();
 
         foreach ($types as $type) {
+            // Se obtienen los datos más detallados de cada tipo de pokemon
             $typeData = $this->client->getTypeData($type['url']);
 
             $pokemonType = new PokemonType(
@@ -64,6 +65,7 @@ class PokemonController extends AbstractController
 
             $pokemons = $typeData['pokemon'];
 
+            // Se asigna el tipo a sus respectivos pokemons
             foreach ($pokemons as $pokemon) {
                 $pokemonName = $pokemon['pokemon']['name'];
 
@@ -102,6 +104,10 @@ class PokemonController extends AbstractController
                 continue;
             }
 
+            // Se guarda la referencia al pokemon original para poder
+            // incrementar su número de evoluciones en base de datos
+            $currentPokemon = $pokemon;
+
             $evolution = $evolutionChain['evolves_to'][0];
 
             while ($evolution) {
@@ -110,13 +116,17 @@ class PokemonController extends AbstractController
 
                 if ($pokemonEvolution) {
                     $pokemon->setEvolvesTo($pokemonEvolution);
+                    $currentPokemon->incrementNumEvolutions();
                 } else {
+                    // Si la evolución no pertenece a la primera
+                    // generación de pokemon, se declara sin evolución
                     $pokemon->setHasEvolution(false);
 
                     break;
                 }
 
                 if (isset($evolution['evolves_to'][0])) {
+                    // Se obtiene la siguiente evolución del pokemon para ser tratada dentro del while
                     $evolution = $evolution['evolves_to'][0];
                     $pokemon = $pokemonEvolution;
                 } else {
@@ -165,16 +175,27 @@ class PokemonController extends AbstractController
         $repository = $entityManager->getRepository(Pokemon::class);
         $pokemon = $repository->findOneBy(['name' => $name]);
 
+        return new JsonResponse($pokemon->getEvolutions());
+    }
+
+    #[Route('/pokemon/max-evolutions', name:'get_pokemon_max_num_evolutions', methods: ['GET'])]
+    public function getMaxNumEvolutions(EntityManagerInterface $entityManager): JsonResponse
+    {
+        $repository = $entityManager->getRepository(Pokemon::class);
+
+        // Se ordena en primer lugar por el número de evoluciones que tiene el
+        // pokemon y a continuación por el índice, tal y como pide el enunciado
+        $pokemons = $repository->findBy([], ['numEvolutions' => 'DESC', 'id' => 'ASC'], 3);
+
         $evolutions = [];
-        $evolution = $pokemon->getEvolvesTo();
 
-        while ($evolution) {
+        foreach ($pokemons as $pokemon) {
             $evolutions[] = [
-                'id' => $evolution->getId(),
-                'name' => $evolution->getName()
+                'id' => $pokemon->getId(),
+                'name' => $pokemon->getName(),
+                'number_evolutions' => $pokemon->getNumEvolutions(),
+                'evolutions' => $pokemon->getEvolutions()
             ];
-
-            $evolution = $evolution->getEvolvesTo();
         }
 
         return new JsonResponse($evolutions);

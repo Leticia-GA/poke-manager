@@ -32,6 +32,9 @@ class Pokemon
     #[ORM\Column(length: 255)]
     private string $evolutionChainUrl;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $numEvolutions = null;
+
     public function __construct(int $id, string $name, string $color, string $evolutionChainUrl)
     {
         $this->id = $id;
@@ -108,5 +111,36 @@ class Pokemon
         }
 
         return $serialization;
+    }
+
+    public function getNumEvolutions(): ?int
+    {
+        return $this->numEvolutions;
+    }
+
+    public function incrementNumEvolutions(): void
+    {
+        if ($this->numEvolutions == null) {
+            $this->numEvolutions = 0;
+        }
+
+        $this->numEvolutions++;
+    }
+
+    public function getEvolutions(): array
+    {
+        $evolutions = [];
+        $evolution = $this->getEvolvesTo();
+
+        while ($evolution) {
+            $evolutions[] = [
+                'id' => $evolution->getId(),
+                'name' => $evolution->getName()
+            ];
+
+            $evolution = $evolution->getEvolvesTo();
+        }
+
+        return $evolutions;
     }
 }
