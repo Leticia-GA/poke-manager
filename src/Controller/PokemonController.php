@@ -37,7 +37,8 @@ class PokemonController extends AbstractController
             $pokemon = new Pokemon(
                 $pokemonData['id'],
                 $pokemonData['name'],
-                $pokemonData['color']['name']
+                $pokemonData['color']['name'],
+                $pokemonData['evolution_chain']['url']
             );
 
             $entityManager->persist($pokemon);
@@ -89,17 +90,39 @@ class PokemonController extends AbstractController
         $pokemons = $repository->findAll();
 
         foreach ($pokemons as $pokemon) {
-            $evolutionChain = $this->client->getEvolutionChain($pokemon);
-
-            if (!isset($evolutionChain['evolves_to'][0])) {
+            if ($pokemon->getEvolvesTo() || !$pokemon->hasEvolution()) {
                 continue;
             }
 
-            $evolutionName = $evolutionChain['evolves_to'][0]['species']['name'];
-            $evolution = $repository->findOneBy(['name' => $evolutionName]);
+            $evolutionChain = $this->client->getEvolutionChain($pokemon->getEvolutionChainUrl());
 
-            if ($evolution) {
-                $pokemon->setEvolvesTo($evolution);
+            if (!isset($evolutionChain['evolves_to'][0])) {
+                $pokemon->setHasEvolution(false);
+
+                continue;
+            }
+
+            $evolution = $evolutionChain['evolves_to'][0];
+
+            while ($evolution) {
+                $evolutionName = $evolution['species']['name'];
+                $pokemonEvolution = $repository->findOneBy(['name' => $evolutionName]);
+
+                if ($pokemonEvolution) {
+                    $pokemon->setEvolvesTo($pokemonEvolution);
+                } else {
+                    $pokemon->setHasEvolution(false);
+
+                    break;
+                }
+
+                if (isset($evolution['evolves_to'][0])) {
+                    $evolution = $evolution['evolves_to'][0];
+                    $pokemon = $pokemonEvolution;
+                } else {
+                    $evolution = null;
+                    $pokemonEvolution->setHasEvolution(false);
+                }
             }
         }
 
