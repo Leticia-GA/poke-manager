@@ -158,4 +158,25 @@ class PokemonController extends AbstractController
 
         return new JsonResponse($data);
     }
+
+    #[Route('/pokemon/{name}/evolutions', name:'get_pokemon_evolutions_by_name', methods: ['GET'])]
+    public function getEvolutionsByName(string $name, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $repository = $entityManager->getRepository(Pokemon::class);
+        $pokemon = $repository->findOneBy(['name' => $name]);
+
+        $evolutions = [];
+        $evolution = $pokemon->getEvolvesTo();
+
+        while ($evolution) {
+            $evolutions[] = [
+                'id' => $evolution->getId(),
+                'name' => $evolution->getName()
+            ];
+
+            $evolution = $evolution->getEvolvesTo();
+        }
+
+        return new JsonResponse($evolutions);
+    }
 }
