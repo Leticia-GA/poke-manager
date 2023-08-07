@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route(path: '/api')]
@@ -27,8 +28,17 @@ class PokemonController extends AbstractController
         $this->client = $client;
     }
 
-    #[Route('/load-all', name: 'load_all_first_generation', methods:['GET'])]
-    public function loadAllFirstGeneration(EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/load-pokemon', name: 'load_all_first_generation', methods:['GET'])]
+    public function loadAll(EntityManagerInterface $entityManager): JsonResponse
+    {
+        $this->loadAllFirstGeneration($entityManager);
+        $this->loadTypes($entityManager);
+        $this->loadEvolutions($entityManager);
+
+        return new JsonResponse();
+    }
+
+    public function loadAllFirstGeneration(EntityManagerInterface $entityManager): void
     {
         $species = $this->client->getPokemonSpecies();
 
@@ -46,12 +56,9 @@ class PokemonController extends AbstractController
         }
 
         $entityManager->flush();
-
-        return new JsonResponse();
     }
 
-    #[Route('/load-types', name: 'load_types', methods:['GET'])]
-    public function loadTypes(EntityManagerInterface $entityManager): JsonResponse
+    public function loadTypes(EntityManagerInterface $entityManager): void
     {
         $types = $this->client->getPokemonTypes();
 
@@ -82,12 +89,9 @@ class PokemonController extends AbstractController
         }
 
         $entityManager->flush();
-
-        return new JsonResponse();
     }
 
-    #[Route('/load-evolutions', name: 'load_evolutions', methods:['GET'])]
-    public function loadEvolutions(EntityManagerInterface $entityManager): JsonResponse
+    public function loadEvolutions(EntityManagerInterface $entityManager): void
     {
         $repository = $entityManager->getRepository(Pokemon::class);
         $pokemons = $repository->findAll();
@@ -138,8 +142,6 @@ class PokemonController extends AbstractController
         }
 
         $entityManager->flush();
-
-        return new JsonResponse();
     }
 
     #[Route('/pokemons', name:'get_all_pokemons', methods: ['GET'])]
@@ -175,6 +177,10 @@ class PokemonController extends AbstractController
     {
         $repository = $entityManager->getRepository(Pokemon::class);
         $pokemon = $repository->findOneBy(['name' => $name]);
+
+        if (!$pokemon) {
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND);
+        }
 
         return new JsonResponse($pokemon->getEvolutions());
     }
