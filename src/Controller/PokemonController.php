@@ -9,11 +9,14 @@ use App\Repository\PokemonRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route(path: '/api')]
 class PokemonController extends AbstractController
 {
+    private const NUM_ITEMS_PER_PAGE = 20;
+
     private PokemonRepository $repository;
     private PokeApiClient $client;
 
@@ -77,5 +80,57 @@ class PokemonController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse();
+    }
+
+    #[Route('/load-evolutions', name: 'load_evolutions', methods:['GET'])]
+    public function loadEvolutions(EntityManagerInterface $entityManager): JsonResponse
+    {
+        $repository = $entityManager->getRepository(Pokemon::class);
+        $pokemons = $repository->findAll();
+
+        foreach ($pokemons as $pokemon) {
+            $evolutionChain = $this->client->getEvolutionChain($pokemon);
+
+            if (!isset($evolutionChain['evolves_to'][0])) {
+                continue;
+            }
+
+            $evolutionName = $evolutionChain['evolves_to'][0]['species']['name'];
+            $evolution = $repository->findOneBy(['name' => $evolutionName]);
+
+            if ($evolution) {
+                $pokemon->setEvolvesTo($evolution);
+            }
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse();
+    }
+
+    #[Route('/pokemons', name:'get_all_pokemons', methods: ['GET'])]
+    public function getAll(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    {
+        $data = [];
+        $page = $request->query->get('page', 1);
+
+        if ($page < 1) {
+            $page = 1;
+        }
+
+        $offset = ($page - 1) * self::NUM_ITEMS_PER_PAGE;
+
+        $repository = $entityManager->getRepository(Pokemon::class);
+        $pokemons = $repository->findBy([], ['id' => 'ASC'], self::NUM_ITEMS_PER_PAGE, $offset);
+
+        foreach ($pokemons as $pokemon) {
+            $data[] = [
+                'id' => $pokemon->getId(),
+                'name' => $pokemon->getName(),
+                'color' => $pokemon->getColor()
+            ];
+        }
+
+        return new JsonResponse($data);
     }
 }
