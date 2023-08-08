@@ -6,7 +6,6 @@ use App\Entity\Pokemon;
 use App\Entity\PokemonType;
 use App\Entity\User;
 use App\PokeApi\PokeApiClient;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,6 +32,15 @@ class PokemonController extends AbstractController
     #[Route('/admin/load-pokemons', name: 'load_all_first_generation', methods:['GET'])]
     public function loadAll(): JsonResponse
     {
+        $pokemonRepository = $this->entityManager->getRepository(Pokemon::class);
+
+        if ($pokemonRepository->count([]) > 0) {
+            return new JsonResponse(
+                ['error' => 'Ya se han registrado todos los Pokemon en la base de datos'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
         $this->loadAllFirstGeneration();
         $this->loadTypes();
         $this->loadEvolutions();
