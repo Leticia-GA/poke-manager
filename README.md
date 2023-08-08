@@ -118,7 +118,9 @@ poder ser importado y consumido de forma sencilla. Será necesario cambiar el do
 
 
 - **Consulta de los tipos según el rol de usuario.** El usuario Admin podrá ver todos los tipos de Pokemon, y el usuario
-  User sólo podrá ver aquellos Pokemon que pertenezcan a los tipos asignados anteriormente por el Admin. Se accederá mediante la siguiente url:
+  User sólo podrá ver aquellos Pokemon que pertenezcan a los tipos asignados anteriormente por el Admin (por defecto, 
+  User no tendrá ningún tipo de Pokemon asignado, por lo que es recomendable asignárselos como se ha explicado en el 
+  punto anterior). Se accederá mediante la siguiente url:
 
    ```
     {dominio_local}/api/user/pokemons
