@@ -4,14 +4,16 @@ namespace App\Controller;
 
 use App\Entity\Pokemon;
 use App\Entity\PokemonType;
+use App\Entity\User;
 use App\PokeApi\PokeApiClient;
-use App\Repository\PokemonRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 
 #[Route(path: '/api')]
 class PokemonController extends AbstractController
@@ -19,26 +21,26 @@ class PokemonController extends AbstractController
     private const NUM_ITEMS_PER_PAGE = 20;
     private const NUM_MAX_EVOLUTION_POKEMONS = 3;
 
-    private PokemonRepository $repository;
+    private EntityManagerInterface $entityManager;
     private PokeApiClient $client;
 
-    public function __construct(PokemonRepository $repository, PokeApiClient $client)
+    public function __construct(EntityManagerInterface $entityManager, PokeApiClient $client)
     {
-        $this->repository = $repository;
+        $this->entityManager = $entityManager;
         $this->client = $client;
     }
 
-    #[Route('/load-pokemons', name: 'load_all_first_generation', methods:['GET'])]
-    public function loadAll(EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/admin/load-pokemons', name: 'load_all_first_generation', methods:['GET'])]
+    public function loadAll(): JsonResponse
     {
-        $this->loadAllFirstGeneration($entityManager);
-        $this->loadTypes($entityManager);
-        $this->loadEvolutions($entityManager);
+        $this->loadAllFirstGeneration();
+        $this->loadTypes();
+        $this->loadEvolutions();
 
         return new JsonResponse();
     }
 
-    public function loadAllFirstGeneration(EntityManagerInterface $entityManager): void
+    public function loadAllFirstGeneration(): void
     {
         $species = $this->client->getPokemonSpecies();
 
@@ -52,13 +54,13 @@ class PokemonController extends AbstractController
                 $pokemonData['evolution_chain']['url']
             );
 
-            $entityManager->persist($pokemon);
+            $this->entityManager->persist($pokemon);
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
     }
 
-    public function loadTypes(EntityManagerInterface $entityManager): void
+    public function loadTypes(): void
     {
         $types = $this->client->getPokemonTypes();
 
@@ -77,7 +79,7 @@ class PokemonController extends AbstractController
             foreach ($pokemons as $pokemon) {
                 $pokemonName = $pokemon['pokemon']['name'];
 
-                $pokemonRepository = $entityManager->getRepository(Pokemon::class);
+                $pokemonRepository = $this->entityManager->getRepository(Pokemon::class);
                 $pokemon = $pokemonRepository->findOneBy(['name' => $pokemonName]);
 
                 if ($pokemon) {
@@ -85,15 +87,15 @@ class PokemonController extends AbstractController
                 }
             }
 
-            $entityManager->persist($pokemonType);
+            $this->entityManager->persist($pokemonType);
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
     }
 
-    public function loadEvolutions(EntityManagerInterface $entityManager): void
+    public function loadEvolutions(): void
     {
-        $repository = $entityManager->getRepository(Pokemon::class);
+        $repository = $this->entityManager->getRepository(Pokemon::class);
         $pokemons = $repository->findAll();
 
         foreach ($pokemons as $pokemon) {
@@ -141,11 +143,11 @@ class PokemonController extends AbstractController
             }
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
     }
 
     #[Route('/pokemons', name:'get_all_pokemons', methods: ['GET'])]
-    public function getAll(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function getAll(Request $request): JsonResponse
     {
         $data = [];
         $page = $request->query->get('page', 1);
@@ -156,7 +158,7 @@ class PokemonController extends AbstractController
 
         $offset = ($page - 1) * self::NUM_ITEMS_PER_PAGE;
 
-        $repository = $entityManager->getRepository(Pokemon::class);
+        $repository = $this->entityManager->getRepository(Pokemon::class);
         $pokemons = $repository->findBy([], ['id' => 'ASC'], self::NUM_ITEMS_PER_PAGE, $offset);
 
         foreach ($pokemons as $pokemon) {
@@ -173,9 +175,9 @@ class PokemonController extends AbstractController
     }
 
     #[Route('/pokemon/{name}/evolutions', name:'get_pokemon_evolutions_by_name', methods: ['GET'])]
-    public function getEvolutionsByName(string $name, EntityManagerInterface $entityManager): JsonResponse
+    public function getEvolutionsByName(string $name): JsonResponse
     {
-        $repository = $entityManager->getRepository(Pokemon::class);
+        $repository = $this->entityManager->getRepository(Pokemon::class);
         $pokemon = $repository->findOneBy(['name' => $name]);
 
         if (!$pokemon) {
@@ -186,9 +188,9 @@ class PokemonController extends AbstractController
     }
 
     #[Route('/pokemon/max-evolutions', name:'get_pokemon_max_num_evolutions', methods: ['GET'])]
-    public function getMaxNumEvolutions(EntityManagerInterface $entityManager): JsonResponse
+    public function getMaxNumEvolutions(): JsonResponse
     {
-        $repository = $entityManager->getRepository(Pokemon::class);
+        $repository = $this->entityManager->getRepository(Pokemon::class);
 
         // Se ordena en primer lugar por el número de evoluciones que tiene el
         // pokemon y a continuación por el índice, tal y como pide el enunciado
@@ -206,5 +208,67 @@ class PokemonController extends AbstractController
         }
 
         return new JsonResponse($evolutions);
+    }
+
+    #[Route('/user/pokemons', name:'get_user_pokemons', methods: ['GET'])]
+    public function getUserPokemons(Security $security): JsonResponse
+    {
+        $user = $security->getUser();
+        $userRole = $user->getRoles();
+        $userTypes = $user->getTypes();
+
+        if (in_array('ROLE_ADMIN', $userRole)) {
+            $pokemonTypeRepository = $this->entityManager->getRepository(PokemonType::class);
+            $pokemonTypes = $pokemonTypeRepository->findAll();
+
+            return new JsonResponse($this->getPokemonDataByTypes($pokemonTypes));
+        }
+
+        return new JsonResponse($this->getPokemonDataByTypes($userTypes));
+    }
+
+    private function getPokemonDataByTypes($types): array
+    {
+        $userPokemons = [];
+
+        foreach ($types as $type) {
+            $pokemonsByType = $type->getPokemons();
+
+            foreach ($pokemonsByType as $pokemon) {
+                $userPokemons[$type->getName()][] = [
+                    'id' => $pokemon->getId(),
+                    'name' => $pokemon->getName()
+                ];
+            }
+        }
+
+        return $userPokemons;
+    }
+
+    #[Route('/admin/user/{id}/update-types', name:'update_user_types', methods: ['POST'])]
+    public function updateUserTypes(int $id, Request $request): JsonResponse
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND);
+        }
+
+        $pokemonTypeRepository = $this->entityManager->getRepository(PokemonType::class);
+        $body = json_decode($request->getContent(), true);
+        $typeIds = $body['types'];
+
+        foreach ($typeIds as $typeId) {
+            $type = $pokemonTypeRepository->find($typeId);
+
+            if ($type) {
+                $user->addType($type);
+            }
+        }
+
+        $this->entityManager->flush();
+
+        return new JsonResponse();
     }
 }

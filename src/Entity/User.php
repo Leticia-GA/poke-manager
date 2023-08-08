@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -32,11 +34,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50)]
     private string $rol;
 
+    #[ORM\ManyToMany(targetEntity: PokemonType::class, mappedBy: 'users')]
+    private Collection $types;
+
     public function __construct(string $name, string $email, string $rol)
     {
         $this->name = $name;
         $this->email = $email;
         $this->rol = $rol;
+        $this->types = new ArrayCollection();
     }
 
     public function getRoles(): array
@@ -52,6 +58,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): void
     {
         $this->password = $password;
+    }
+
+    public function getTypes(): Collection
+    {
+        return $this->types;
+    }
+
+    public function addType(PokemonType $type): void
+    {
+        $this->types->add($type);
+        $type->addUser($this);
     }
 
     public function getSalt(): ?string

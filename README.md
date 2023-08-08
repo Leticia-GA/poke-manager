@@ -59,7 +59,7 @@
   **evoluciones**.
   A continuación un ejemplo:
     ```
-    {dominio_local}/api/load-pokemons
+    {dominio_local}/api/admin/load-pokemons
     ```
 - He utilizado el **SecurityBundle** de Symfony para filtrar el acceso a los endpoints mediante roles de usuario.
   Concretamente, una configuración **HTTP Basic** mediante esa librería.
