@@ -50,4 +50,9 @@ class PokemonType
     {
         return $this->users->add($user);
     }
+
+    public function clearUsers(): void
+    {
+        $this->users->clear();
+    }
 }

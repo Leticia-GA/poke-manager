@@ -71,6 +71,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $type->addUser($this);
     }
 
+    public function clearTypes(): void
+    {
+        foreach ($this->types as $type) {
+            $type->clearUsers();
+            $this->types->removeElement($type);
+        }
+    }
+
     public function getSalt(): ?string
     {
         return null;

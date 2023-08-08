@@ -1,0 +1,227 @@
+{
+	"info": {
+		"_postman_id": "b74c98a2-220c-4694-810b-2ec9996b0c62",
+		"name": "poke-manager",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28976368"
+	},
+	"item": [
+		{
+			"name": "Load all Pokemon",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin@gmail.com",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "gestionet-test.localhost/api/admin/load-pokemons",
+					"host": [
+						"gestionet-test",
+						"localhost"
+					],
+					"path": [
+						"api",
+						"admin",
+						"load-pokemons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Pokemon",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "gestionet-test.localhost/api/pokemons?page=2",
+					"host": [
+						"gestionet-test",
+						"localhost"
+					],
+					"path": [
+						"api",
+						"pokemons"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Pokemon evolutions by name",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "gestionet-test.localhost/api/pokemon/charmander/evolutions",
+					"host": [
+						"gestionet-test",
+						"localhost"
+					],
+					"path": [
+						"api",
+						"pokemon",
+						"charmander",
+						"evolutions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get 3 Pokemon with most evolutions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "gestionet-test.localhost/api/pokemon/max-evolutions",
+					"host": [
+						"gestionet-test",
+						"localhost"
+					],
+					"path": [
+						"api",
+						"pokemon",
+						"max-evolutions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User types",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin@gmail.com",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"types\" : [1, 3, 10]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "gestionet-test.localhost/api/admin/user/2/update-types",
+					"host": [
+						"gestionet-test",
+						"localhost"
+					],
+					"path": [
+						"api",
+						"admin",
+						"user",
+						"2",
+						"update-types"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User pokemons",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "user",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "user@gmail.com",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "gestionet-test.localhost/api/user/pokemons",
+					"host": [
+						"gestionet-test",
+						"localhost"
+					],
+					"path": [
+						"api",
+						"user",
+						"pokemons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin pokemons",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin@gmail.com",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "gestionet-test.localhost/api/user/pokemons",
+					"host": [
+						"gestionet-test",
+						"localhost"
+					],
+					"path": [
+						"api",
+						"user",
+						"pokemons"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

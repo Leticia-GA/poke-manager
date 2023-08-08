@@ -48,7 +48,7 @@ class PokemonController extends AbstractController
         return new JsonResponse();
     }
 
-    public function loadAllFirstGeneration(): void
+    private function loadAllFirstGeneration(): void
     {
         $species = $this->client->getPokemonSpecies();
 
@@ -68,7 +68,7 @@ class PokemonController extends AbstractController
         $this->entityManager->flush();
     }
 
-    public function loadTypes(): void
+    private function loadTypes(): void
     {
         $types = $this->client->getPokemonTypes();
 
@@ -101,7 +101,7 @@ class PokemonController extends AbstractController
         $this->entityManager->flush();
     }
 
-    public function loadEvolutions(): void
+    private function loadEvolutions(): void
     {
         $repository = $this->entityManager->getRepository(Pokemon::class);
         $pokemons = $repository->findAll();
@@ -266,6 +266,8 @@ class PokemonController extends AbstractController
         $pokemonTypeRepository = $this->entityManager->getRepository(PokemonType::class);
         $body = json_decode($request->getContent(), true);
         $typeIds = $body['types'];
+
+        $user->clearTypes();
 
         foreach ($typeIds as $typeId) {
             $type = $pokemonTypeRepository->find($typeId);

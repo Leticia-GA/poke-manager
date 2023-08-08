@@ -2,7 +2,7 @@
 
 ## 📝 [Enunciado inicial](./doc/enunciado_inicial.md)
 
-## 📝 Tecnologías utilizadas
+## ⚙️ Tecnologías utilizadas
 
 - **PHP 8.0**
 - **Symfony 5.4**
@@ -54,7 +54,13 @@
    php bin/console doctrine:fixtures:load
    ```
 
-## 📈 Carga de datos
+## ☎️ Consumo de la API
+Se adjunta un [proyecto Postman](./doc/poke-manager.postman_collection.json) con los ejemplos de cada petición para 
+poder ser importado y consumido de forma sencilla. Será necesario cambiar el dominio de cada petición al dominio local.
+
+## 📝 Tareas Principales
+
+### 📈 Carga de datos
 - Se ha creado **un mismo endpoint para cargar todos los pokemon** de primera generación, sus **tipos** y sus 
   **evoluciones**.
   A continuación un ejemplo:
@@ -68,7 +74,7 @@
   - Contraseña: `admin`
 
 
-## 📉 Consulta de datos
+### 📉 Consulta de datos (API pública)
 - **Obtención de todos los Pokemon:** Para consultar todos los Pokemon que hay en la base de datos, he hecho una 
   paginación para obtener los elementos de 20 en 20. El número de página que se desee consultar se pasará mediante un 
   **parámetro en la URL**, siguiendo este ejemplo: 
@@ -88,3 +94,34 @@
   ```
   {dominio_local}/api/pokemon/max-evolutions
   ```
+  
+## ⚡ Tareas Extra
+
+- **Creación rol Usuario** mediante fixtures. Sus credenciales son:
+  - Usuario: `user@gmail.com`
+  - Contraseña: `user`
+  
+
+- **Asignar tipos de pokemon a ese usuario.** El Admin podrá asignar los tipos de Pokemon que puede ver cada  usuario
+  mediante una petición POST a la siguiente url: 
+   ```
+    {dominio_local}/api/admin/user/{id}/update-types
+    ```
+  donde {id} será el id del usuario que se va a modificar y deberá contener un body con los tipos que se asignarán al
+  usuario, con el siguiente formato:
+  ```json
+  {
+    "types" : [1, 3, 10]
+  }
+  ```
+  Este endpoint será accesible sólo para el Admin.
+
+
+- **Consulta de los tipos según el rol de usuario.** El usuario Admin podrá ver todos los tipos de Pokemon, y el usuario
+  User sólo podrá ver aquellos Pokemon que pertenezcan a los tipos asignados anteriormente por el Admin. Se accederá mediante la siguiente url:
+
+   ```
+    {dominio_local}/api/user/pokemons
+    ```
+
+
