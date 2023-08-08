@@ -19,9 +19,11 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $this->adminFixtures($manager);
+        $this->userFixtures($manager);
     }
 
-    public function adminFixtures(ObjectManager $manager): void {
+    public function adminFixtures(ObjectManager $manager): void
+    {
         $admin = new User(
             'Leticia',
             'admin@gmail.com',
@@ -36,7 +38,25 @@ class AppFixtures extends Fixture
         $admin->setPassword($hashedPassword);
 
         $manager->persist($admin);
+        $manager->flush();
+    }
 
+    public function userFixtures(ObjectManager $manager): void
+    {
+        $user = new User(
+            'Ash',
+            'user@gmail.com',
+            User::ROLE_USER
+        );
+
+        $hashedPassword = $this->passwordHasher->hashPassword(
+            $user,
+            'user'
+        );
+
+        $user->setPassword($hashedPassword);
+
+        $manager->persist($user);
         $manager->flush();
     }
 }

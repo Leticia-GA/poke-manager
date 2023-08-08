@@ -46,8 +46,8 @@ La prueba se basa en crear un usuario que pueda obtener información de todos lo
                               "url": "https://pokeapi.co/api/v2/pokemon-species/4/"
                             },
                             {
-                            ..
-         ``
+                            ...
+         ```
     - Cargar tipos de pokemon: Es necesario crear una lista de tipos de pokemon y guardarlo en nuestra base de datos.
       ```json
              // ENDPOINT => https://pokeapi.co/api/v2/type

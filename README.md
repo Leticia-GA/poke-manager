@@ -59,7 +59,7 @@
   **evoluciones**.
   A continuación un ejemplo:
     ```
-    http://{nombre_dominio_local}/api/load-pokemons
+    {dominio_local}/api/load-pokemons
     ```
 - He utilizado el **SecurityBundle** de Symfony para filtrar el acceso a los endpoints mediante roles de usuario.
   Concretamente, una configuración **HTTP Basic** mediante esa librería.
@@ -71,12 +71,20 @@
 ## 📉 Consulta de datos
 - **Obtención de todos los Pokemon:** Para consultar todos los Pokemon que hay en la base de datos, he hecho una 
   paginación para obtener los elementos de 20 en 20. El número de página que se desee consultar se pasará mediante un 
-  **parámetro en la URL**, siguiendo este ejemplo: `http://{nombre_dominio_local}/api/pokemons?page=2`
+  **parámetro en la URL**, siguiendo este ejemplo: 
+  ```
+  {dominio_local}/api/pokemons?page=2
+  ```
 
 
 - **Obtención de las evoluciones de un pokemon concreto por nombre**:  
-  `http://{nombre_dominio_local}/api/pokemon/charmander/evolutions`
+  ```
+  {dominio_local}/api/pokemon/charmander/evolutions
+  ```
 
 
 - **Obtención de los 3 pokemon con más evoluciones** ordenadas por su índice (id) y con el número de evoluciones que 
-  tiene: `http://{nombre_dominio_local}/api/pokemon/max-evolutions`
+  tiene:
+  ```
+  {dominio_local}/api/pokemon/max-evolutions
+  ```
