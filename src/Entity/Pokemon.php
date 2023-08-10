@@ -31,8 +31,8 @@ class Pokemon
     #[ORM\Column(length: 255)]
     private string $evolutionChainUrl;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $numEvolutions = null;
+    #[ORM\Column]
+    private int $numEvolutions = 0;
 
     public function __construct(int $id, string $name, string $color, string $evolutionChainUrl)
     {

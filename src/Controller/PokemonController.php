@@ -119,9 +119,7 @@ class PokemonController extends AbstractController
                 continue;
             }
 
-            // Se guarda la referencia al pokemon original para poder
-            // incrementar su número de evoluciones en base de datos
-            $currentPokemon = $pokemon;
+            $pokemonAndEvolutions = [$pokemon];
 
             $evolution = $evolutionChain['evolves_to'][0];
 
@@ -131,7 +129,10 @@ class PokemonController extends AbstractController
 
                 if ($pokemonEvolution) {
                     $pokemon->setEvolvesTo($pokemonEvolution);
-                    $currentPokemon->incrementNumEvolutions();
+
+                    foreach ($pokemonAndEvolutions as $currentPokemon) {
+                        $currentPokemon->incrementNumEvolutions();
+                    }
                 } else {
                     // Si la evolución no pertenece a la primera
                     // generación de pokemon, se declara sin evolución
@@ -144,6 +145,7 @@ class PokemonController extends AbstractController
                     // Se obtiene la siguiente evolución del pokemon para ser tratada dentro del while
                     $evolution = $evolution['evolves_to'][0];
                     $pokemon = $pokemonEvolution;
+                    $pokemonAndEvolutions[] = $pokemonEvolution;
                 } else {
                     $evolution = null;
                     $pokemonEvolution->setHasEvolution(false);
